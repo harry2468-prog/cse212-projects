@@ -1,6 +1,9 @@
-﻿public class DuplicateCounter
+﻿using System;
+using System.Collections.Generic; // Required to use HashSet
+
+public class DuplicateCounter
 {
-    //Count how many duplicates are in a collection of data.
+    // Count how many duplicates are in a collection of data.
 
     public static void Run()
     {
@@ -22,9 +25,23 @@
         Console.WriteLine($"Number of duplicates : {CountDuplicates(data)}");
     }
 
+    /// <summary>
+    /// Counts how many duplicates are in an array of integers in O(n) time.
+    /// </summary>
     private static int CountDuplicates(int[] data)
     {
-        // Add code here.
-        return 0;
+        var seenNumbers = new HashSet<int>();
+        int duplicateCount = 0;
+
+        foreach (int number in data)
+        {
+            // HashSet.Add returns false if the item is already present in the set.
+            if (!seenNumbers.Add(number))
+            {
+                duplicateCount++; // We found a duplicate!
+            }
+        }
+
+        return duplicateCount;
     }
 }

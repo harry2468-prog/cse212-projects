@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic; // Required to use Dictionary
+
 public class Translator
 {
     public static void Run()
@@ -14,17 +17,14 @@ public class Translator
     private Dictionary<string, string> _words = new();
 
     /// <summary>
-    /// Add the translation from 'from_word' to 'to_word'
-    /// For example, in a english to german dictionary:
-    /// 
-    /// my_translator.AddWord("book","buch")
+    /// Add the translation from 'fromWord' to 'toWord'
     /// </summary>
     /// <param name="fromWord">The word to translate from</param>
     /// <param name="toWord">The word to translate to</param>
-    /// <returns>fixed array of divisors</returns>
     public void AddWord(string fromWord, string toWord)
     {
-        // ADD YOUR CODE HERE
+        // Add or update the key-value pair in the dictionary
+        _words[fromWord] = toWord;
     }
 
     /// <summary>
@@ -34,7 +34,13 @@ public class Translator
     /// <returns>The translated word or "???" if no translation is available</returns>
     public string Translate(string fromWord)
     {
-        // ADD YOUR CODE HERE
-        return "";
+        // Check if the dictionary contains the word as a key
+        if (_words.ContainsKey(fromWord))
+        {
+            return _words[fromWord]; // Return the translated value
+        }
+        
+        // Return "???" if the translation does not exist
+        return "???";
     }
 }
