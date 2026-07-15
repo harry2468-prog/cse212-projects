@@ -1,33 +1,38 @@
-﻿public static class DisplaySums {
+﻿using System;
+using System.Collections.Generic;
+
+public static class DisplaySums {
     public static void Run() {
-        DisplaySumPairs([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-        // Should show something like (order does not matter):
-        // 6 4
-        // 7 3
-        // 8 2
-        // 9 1 
+        Console.WriteLine("------------");
+        var test1 = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        DisplaySumPairs(test1); // Expect: 9 & 1, 8 & 2, 7 & 3, 6 & 4 (or similar pairs)
 
         Console.WriteLine("------------");
-        DisplaySumPairs([-20, -15, -10, -5, 0, 5, 10, 15, 20]);
-        // Should show something like (order does not matter):
-        // 10 0
-        // 15 -5
-        // 20 -10
+        var test2 = new[] { 5, 10, 2, 8, 4, 1, 9 };
+        DisplaySumPairs(test2); // Expect: 8 & 2, 9 & 1
 
         Console.WriteLine("------------");
-        DisplaySumPairs([5, 11, 2, -4, 6, 8, -1]);
-        // Should show something like (order does not matter):
-        // 8 2
-        // -1 11
+        var test3 = new[] { 1, 2, 3, 4, 5 };
+        DisplaySumPairs(test3); // Expect: nothing printed
     }
 
     /// <summary>
-    /// Display pairs of numbers (no duplicates should be displayed) that sum to
-    /// 10 using a set in O(n) time.  We are assuming that there are no duplicates
-    /// in the list.
+    /// Display show pairs of numbers that sum to 10 using a set of O(n) efficiency.
     /// </summary>
-    /// <param name="numbers">array of integers</param>
     private static void DisplaySumPairs(int[] numbers) {
-        // TODO Problem 2 - This should print pairs of numbers in the given array
+        // Create a set to store numbers we have already evaluated
+        var seenNumbers = new HashSet<int>();
+
+        foreach (var number in numbers) {
+            int target = 10 - number;
+
+            // If the target number we need was already seen, we found a matching pair
+            if (seenNumbers.Contains(target)) {
+                Console.WriteLine($"{number} & {target}");
+            }
+
+            // Add the current number to our set of seen numbers
+            seenNumbers.Add(number);
+        }
     }
 }
