@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.IO;
+using System.Net.Http;
 using System.Text.Json;
 
 public static class SetsAndMaps
@@ -20,11 +23,40 @@ public static class SetsAndMaps
     /// </summary>
     /// <param name="words">An array of 2-character words (lowercase, no duplicates)</param>
     public static string[] FindPairs(string[] words)
+{
+    HashSet<string> seenWords = new HashSet<string>();
+    List<string> pairs = new List<string>();
+
+    // Pre-allocate a character array so we don't recreate it 1,000,000 times
+    char[] revChars = new char[2];
+
+    foreach (string word in words)
     {
-        // TODO Problem 1 - ADD YOUR CODE HERE
-        return [];
+        // Manually flip the characters using our array
+        revChars[0] = word[1];
+        revChars[1] = word[0];
+        
+        // Create the reversed string instantly
+        string reversed = new string(revChars);
+
+        // If the HashSet contains the reversed word, we found a pair!
+        if (seenWords.Contains(reversed))
+        {
+            // As long as the word isn't a palindrome (like "aa"), add it to the pairs
+            if (word != reversed)
+            {
+                pairs.Add($"{word} & {reversed}");
+            }
+        }
+        else
+        {
+            // Otherwise, just remember we've seen this word
+            seenWords.Add(word);
+        }
     }
 
+    return pairs.ToArray();
+}
     /// <summary>
     /// Read a census file and summarize the degrees (education)
     /// earned by those contained in the file.  The summary
@@ -35,14 +67,31 @@ public static class SetsAndMaps
     /// file.
     /// </summary>
     /// <param name="filename">The name of the file to read</param>
-    /// <returns>fixed array of divisors</returns>
+    /// <returns>A dictionary summarizing the degree counts</returns>
     public static Dictionary<string, int> SummarizeDegrees(string filename)
     {
         var degrees = new Dictionary<string, int>();
+        
         foreach (var line in File.ReadLines(filename))
         {
             var fields = line.Split(",");
-            // TODO Problem 2 - ADD YOUR CODE HERE
+            
+            // Ensure there are enough columns to avoid index errors
+            if (fields.Length > 3)
+            {
+                // Extract the 4th column (index 3) and trim any extra spaces
+                string degree = fields[3].Trim();
+
+                // Add to dictionary or increment existing count
+                if (degrees.ContainsKey(degree))
+                {
+                    degrees[degree]++;
+                }
+                else
+                {
+                    degrees[degree] = 1;
+                }
+            }
         }
 
         return degrees;
@@ -66,8 +115,50 @@ public static class SetsAndMaps
     /// </summary>
     public static bool IsAnagram(string word1, string word2)
     {
-        // TODO Problem 3 - ADD YOUR CODE HERE
-        return false;
+        // Clean the words: ignore spaces and convert to lowercase
+        string clean1 = word1.ToLower().Replace(" ", "");
+        string clean2 = word2.ToLower().Replace(" ", "");
+
+        // If lengths are different after cleaning, they cannot be anagrams
+        if (clean1.Length != clean2.Length)
+        {
+            return false;
+        }
+
+        // Dictionary to count letter frequencies
+        var letterCounts = new Dictionary<char, int>();
+
+        // Count the letters in the first word
+        for (int i = 0; i < clean1.Length; i++)
+        {
+            char letter = clean1[i];
+
+            if (letterCounts.ContainsKey(letter))
+            {
+                letterCounts[letter]++;
+            }
+            else
+            {
+                letterCounts[letter] = 1;
+            }
+        }
+
+        // Decrement counts and verify matches with the second word
+        for (int i = 0; i < clean2.Length; i++)
+        {
+            char letter = clean2[i];
+
+            // If the letter is missing or we ran out of counts for it, it's not an anagram
+            if (!letterCounts.ContainsKey(letter) || letterCounts[letter] == 0)
+            {
+                return false;
+            }
+
+            letterCounts[letter]--;
+        }
+
+        // If all checks passed, the words are anagrams
+        return true;
     }
 
     /// <summary>
@@ -85,22 +176,33 @@ public static class SetsAndMaps
     /// 
     /// </summary>
     public static string[] EarthquakeDailySummary()
+{
+    // 1. Fetch the JSON data from the USGS API
+    const string uri = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
+    using var client = new HttpClient();
+    
+    // Perform synchronous HTTP GET to fetch the data
+    string json = client.GetStringAsync(uri).Result;
+
+    // 2. Deserialize the JSON into the FeatureCollection objects you made
+    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+    var featureCollection = JsonSerializer.Deserialize<FeatureCollection>(json, options);
+
+    // 3. Loop through the properties and format the output strings
+    var result = new List<string>();
+    
+    if (featureCollection?.Features != null)
     {
-        const string uri = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
-        using var client = new HttpClient();
-        using var getRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
-        using var jsonStream = client.Send(getRequestMessage).Content.ReadAsStream();
-        using var reader = new StreamReader(jsonStream);
-        var json = reader.ReadToEnd();
-        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        foreach (var feature in featureCollection.Features)
+        {
+            string place = feature.Properties.Place;
+            double? mag = feature.Properties.Mag;
 
-        var featureCollection = JsonSerializer.Deserialize<FeatureCollection>(json, options);
-
-        // TODO Problem 5:
-        // 1. Add code in FeatureCollection.cs to describe the JSON using classes and properties 
-        // on those classes so that the call to Deserialize above works properly.
-        // 2. Add code below to create a string out each place a earthquake has happened today and its magitude.
-        // 3. Return an array of these string descriptions.
-        return [];
+            // Add the formatted string to our result list
+            result.Add($"{place} - Mag {mag}");
+        }
     }
+
+    return result.ToArray();
+}
 }
